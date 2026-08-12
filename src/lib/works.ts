@@ -49,10 +49,18 @@ const WORK_FIELDS = `
   category,
   date,
   cover ${IMAGE},
-  "gallery": coalesce(gallery[] ${IMAGE}, [])
+  "gallery": coalesce(gallery[defined(asset)] ${IMAGE}, [])
 `;
 
-/** 발행된 문서만, 최신순 */
+/**
+ * 렌더 가능한 문서 조건.
+ * 스튜디오에서 "Add item" 만 누르고 이미지를 넣지 않으면 asset 이 없는 빈
+ * 항목이 남습니다. 그대로 두면 이미지 URL 을 만들 수 없어 500 이 나므로,
+ * 갤러리는 위에서 걸러내고 대표 이미지가 없는 문서는 아예 제외합니다.
+ */
+const RENDERABLE = `_type == "work" && defined(slug.current) && defined(cover.asset)`;
+
+/** 최신순 */
 const ORDER = `| order(date desc, _createdAt desc)`;
 
 interface RawImage {
@@ -108,7 +116,7 @@ function toWork(raw: RawWork): Work {
 /** 전체 목록 (최신순) */
 export async function getAllWorks(): Promise<Work[]> {
   const raw = await sanityClient.fetch<RawWork[]>(
-    `*[_type == "work" && defined(slug.current)] ${ORDER} { ${WORK_FIELDS} }`,
+    `*[${RENDERABLE}] ${ORDER} { ${WORK_FIELDS} }`,
   );
   return raw.map(toWork);
 }
@@ -116,7 +124,7 @@ export async function getAllWorks(): Promise<Work[]> {
 /** 홈 — 최신 n개. [0]이 우측 대형, [1..3]이 좌측 썸네일 */
 export async function getLatestWorks(limit: number): Promise<Work[]> {
   const raw = await sanityClient.fetch<RawWork[]>(
-    `*[_type == "work" && defined(slug.current)] ${ORDER} [0...$limit] { ${WORK_FIELDS} }`,
+    `*[${RENDERABLE}] ${ORDER} [0...$limit] { ${WORK_FIELDS} }`,
     { limit },
   );
   return raw.map(toWork);
@@ -125,7 +133,7 @@ export async function getLatestWorks(limit: number): Promise<Work[]> {
 /** 상단 메뉴 — 해당 카테고리 작업물만 */
 export async function getWorksByCategory(category: string): Promise<Work[]> {
   const raw = await sanityClient.fetch<RawWork[]>(
-    `*[_type == "work" && category == $category && defined(slug.current)] ${ORDER} { ${WORK_FIELDS} }`,
+    `*[${RENDERABLE} && category == $category] ${ORDER} { ${WORK_FIELDS} }`,
     { category },
   );
   return raw.map(toWork);
@@ -136,7 +144,7 @@ export async function getWorkBySlug(
   slug: string,
 ): Promise<{ work: Work; bodyHtml: string } | undefined> {
   const raw = await sanityClient.fetch<(RawWork & { body: PortableText | null }) | null>(
-    `*[_type == "work" && slug.current == $slug][0] { ${WORK_FIELDS}, body }`,
+    `*[${RENDERABLE} && slug.current == $slug][0] { ${WORK_FIELDS}, body }`,
     { slug },
   );
   if (!raw) return undefined;
