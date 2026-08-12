@@ -5,6 +5,7 @@ import { categoryLabel } from '~/lib/site';
 import { getAllWorks, getWorkBySlug, balanceColumns } from '~/lib/works';
 import { fluidSrcSet, fluidUrl } from '~/lib/image';
 
+// 정적 빌드(output: 'static')로 되돌릴 때만 쓰입니다. SSR 에서는 무시됩니다.
 export const getStaticPaths = (async () => {
   const works = await getAllWorks();
   return works.map((w) => ({ params: { category: w.category, slug: w.slug } }));
@@ -12,7 +13,12 @@ export const getStaticPaths = (async () => {
 
 const { category, slug } = Astro.params;
 const found = await getWorkBySlug(slug!);
-if (!found) return Astro.rewrite('/404');
+
+// SSR 에서는 URL 의 카테고리를 검증하지 않으면 같은 작업물이 /painting/xxx,
+// /digital/xxx 처럼 여러 주소로 열려 중복 콘텐츠가 됩니다.
+if (!found || found.work.category !== category) {
+  return Astro.rewrite('/404');
+}
 
 const { work, bodyHtml } = found;
 // 시안 재현: 텍스트 패널을 좌측 컬럼의 첫 블록으로 두고,

@@ -5,10 +5,18 @@ import WorkCard from '~/components/WorkCard.astro';
 import { CATEGORIES, categoryLabel } from '~/lib/site';
 import { getWorksByCategory } from '~/lib/works';
 
+// 정적 빌드(output: 'static')로 되돌릴 때만 쓰입니다. SSR 에서는 무시됩니다.
 export const getStaticPaths = (() =>
   CATEGORIES.map((c) => ({ params: { category: c.slug } }))) satisfies GetStaticPaths;
 
 const { category } = Astro.params;
+
+// SSR 에서는 getStaticPaths 가 적용되지 않아 /아무거나 가 이 페이지로 들어옵니다.
+// 등록된 카테고리가 아니면 404 로 넘깁니다.
+if (!CATEGORIES.some((c) => c.slug === category)) {
+  return Astro.rewrite('/404');
+}
+
 const works = await getWorksByCategory(category!);
 const label = categoryLabel(category!);
 ---

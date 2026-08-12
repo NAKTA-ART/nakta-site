@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import { loadEnv } from 'vite';
 import sanity from '@sanity/astro';
 import react from '@astrojs/react';
+import vercel from '@astrojs/vercel';
 
 // astro.config 는 Vite 의 env 로딩보다 먼저 실행되므로 직접 읽어옵니다.
 const env = loadEnv(process.env.NODE_ENV ?? 'development', process.cwd(), '');
@@ -14,13 +15,22 @@ process.env.SANITY_ASTRO_DISABLE_MODULE_DEDUPE = '1';
 
 export default defineConfig({
   site: 'https://nakta.site',
+
+  // SSR — 요청마다 Sanity 에서 가져오므로 발행 즉시 반영됩니다.
+  // 정적 빌드로 되돌리려면 'static' 으로 바꾸면 됩니다.
+  // (각 라우트의 getStaticPaths 를 남겨두어 그대로 동작합니다)
+  output: 'server',
+  adapter: vercel(),
+
   integrations: [
     sanity({
       projectId: env.PUBLIC_SANITY_PROJECT_ID,
       dataset: env.PUBLIC_SANITY_DATASET,
       apiVersion: '2025-02-19',
-      // 빌드 시점에 최신 콘텐츠를 가져오도록 CDN 캐시를 쓰지 않습니다.
-      useCdn: false,
+      // SSR 은 요청마다 조회하므로 Sanity CDN 캐시를 씁니다.
+      // 발행 시 자동으로 무효화되고, API 쿼터와 응답 속도에서 크게 유리합니다.
+      // (정적 빌드로 되돌린다면 false 가 낫습니다)
+      useCdn: true,
       // 임베디드 스튜디오 경로
       studioBasePath: '/studio',
     }),
