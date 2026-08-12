@@ -2,10 +2,27 @@
 
 Astro + Sanity CMS 포트폴리오 사이트. `design/` 의 PSD 시안을 픽셀 좌표 단위로 옮겼습니다.
 
+## 링크
+
+| | |
+| --- | --- |
+| 운영 사이트 | https://nakta-site.vercel.app |
+| 스튜디오(CMS) | https://nakta-site.vercel.app/studio |
+| 저장소 | https://github.com/NAKTA-ART/nakta-site |
+| Sanity 프로젝트 관리 | https://sanity.io/manage — projectId `dkxl1vhh`, dataset `production` |
+| 호스팅 | Vercel (팀 `npic`) — `main` 에 push 하면 자동 재배포 |
+
+**렌더링 모드: SSR** (`output: 'server'`). 요청마다 Sanity 에서 가져오므로
+스튜디오에서 Publish 하면 새로고침만으로 즉시 반영됩니다. Deploy Webhook 불필요.
+
+새 도메인이나 프리뷰 주소에서 `/studio` 를 열려면 그 주소를 Sanity 의
+**API → CORS origins** 에 `Allow credentials` 체크와 함께 추가해야 합니다.
+(사이트 본문은 서버에서 가져오므로 CORS 없이도 보입니다)
+
 ```bash
 npm run dev        # 개발 서버 (http://localhost:4321), 스튜디오는 /studio
 npm run dev:clean  # Vite 캐시를 지우고 시작 (스튜디오가 깨졌을 때)
-npm run build      # 정적 빌드 → dist/
+npm run build      # 빌드 → .vercel/output (Vercel 어댑터)
 npm run check      # 타입 검사
 ```
 
@@ -101,16 +118,28 @@ Sanity 이미지 CDN에서 직접 받아옵니다 (`lib/image.ts`).
 
 ## 배포와 콘텐츠 반영
 
-정적 빌드라서 **스튜디오에서 발행한 내용은 다음 빌드부터 반영**됩니다.
-Vercel · Netlify · Cloudflare Pages 중 무엇을 쓰든, Sanity 프로젝트에
-**Deploy Webhook** 을 걸어두면 발행 직후 자동으로 다시 빌드됩니다.
+SSR(`output: 'server'`) + `@astrojs/vercel` 로 배포합니다. 요청마다 Sanity 를
+조회하므로 **Publish 하면 새로고침만으로 반영**되고, 재빌드가 필요 없습니다.
+`main` 에 push 하면 Vercel 이 자동으로 다시 배포합니다.
 
-즉시 반영이 필요하면 `astro.config.mjs` 에 `output: 'server'` 와 어댑터를
-추가해 SSR로 전환할 수 있습니다.
+> `@astrojs/vercel` 은 Astro 버전과 메이저를 맞춰야 합니다.
+> Astro 5 → 어댑터 **9.x** (10.x=Astro 6, 11.x=Astro 7).
+> `npx astro add vercel` 은 최신(=상위 메이저)을 설치하려다 peer 충돌로 실패합니다.
 
-> 정적 빌드에서는 스튜디오가 자동으로 해시 라우터(`/studio#/...`)를 쓰므로,
-> 어떤 정적 호스팅에서도 새로고침 404 없이 동작합니다.
-> SSR로 바꾸면 자동으로 일반 경로 라우터로 전환됩니다.
+### 정적 빌드로 되돌리려면
+
+`astro.config.mjs` 에서 `output: 'static'` 으로 바꾸고, `useCdn` 은 `false` 로
+되돌리는 편이 낫습니다(빌드 때 한 번만 조회하므로). 각 라우트의
+`getStaticPaths` 를 남겨두었기 때문에 그대로 동작하며, Sanity 에 **Deploy
+Webhook** 을 걸어 발행 시 자동 재빌드시키면 됩니다.
+
+> SSR 에서는 `getStaticPaths` 가 무시되어 패턴에 맞는 **모든** URL 이 라우트로
+> 들어옵니다. 그래서 `[category]` 페이지들은 요청 시점에 카테고리 유효성과
+> URL·문서 카테고리 일치를 검사해 404 로 보냅니다. 이 검사는 정적 빌드에서도
+> 무해하니 그대로 두세요.
+>
+> 스튜디오 라우터는 정적일 때 해시(`/studio#/...`), SSR 일 때 일반 경로로
+> 자동 전환됩니다.
 
 ## 남은 것
 
