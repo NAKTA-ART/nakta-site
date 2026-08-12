@@ -1,0 +1,31 @@
+---
+import type { Work } from '~/lib/works';
+import { croppedSrcSet, croppedUrl } from '~/lib/image';
+
+interface Props {
+  work: Work;
+  /** 카드 종횡비(가로/세로). 시안 기준 기본값 4:3 */
+  aspect?: number;
+  /** 반응형 이미지 sizes 힌트 */
+  sizes?: string;
+  /** LCP 후보(홈 대형 이미지 등)는 true */
+  priority?: boolean;
+}
+
+const { work, aspect = 4 / 3, sizes = '(max-width: 720px) 100vw, 50vw', priority = false } = Astro.props;
+---
+
+<a class="card" href={work.href} style={`aspect-ratio:${aspect}`}>
+  <img
+    class="card__img"
+    src={croppedUrl(work.cover, aspect)}
+    srcset={croppedSrcSet(work.cover, aspect)}
+    sizes={sizes}
+    alt={work.cover.alt}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding={priority ? 'sync' : 'async'}
+    fetchpriority={priority ? 'high' : 'auto'}
+  />
+  <span class="badge">{work.dateLabel}</span>
+  <span class="visually-hidden">{work.title}</span>
+</a>

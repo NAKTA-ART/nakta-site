@@ -1,0 +1,161 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { categoryLabel } from '~/lib/site';
+import { getAllWorks, getWorkBySlug, balanceColumns } from '~/lib/works';
+import { fluidSrcSet, fluidUrl } from '~/lib/image';
+
+export const getStaticPaths = (async () => {
+  const works = await getAllWorks();
+  return works.map((w) => ({ params: { category: w.category, slug: w.slug } }));
+}) satisfies GetStaticPaths;
+
+const { category, slug } = Astro.params;
+const found = await getWorkBySlug(slug!);
+if (!found) return Astro.rewrite('/404');
+
+const { work, bodyHtml } = found;
+// 시안 재현: 텍스트 패널을 좌측 컬럼의 첫 블록으로 두고,
+// 나머지 이미지는 종횡비 기준으로 짧은 컬럼에 순서대로 채웁니다.
+const { left, right } = balanceColumns(work.gallery);
+---
+
+<BaseLayout
+  title={work.title}
+  active={work.category}
+  description={`${work.title} — NAKTA ${categoryLabel(work.category)}`}
+  hideFooter
+>
+  <article class="detail">
+    <div class="detail__col">
+      <div class="detail__text">
+        <a class="detail__back" href={`/${category}`}>← Back</a>
+
+        <h1 class="detail__title">
+          {work.title}
+          <span class="detail__date">{work.dateLabel}</span>
+        </h1>
+
+        <div class="detail__body" set:html={bodyHtml} />
+      </div>
+
+      {
+        left.map((img) => (
+          <img
+            class="detail__img"
+            src={fluidUrl(img)}
+            srcset={fluidSrcSet(img)}
+            sizes="(max-width: 720px) 100vw, 50vw"
+            width={img.width}
+            height={img.height}
+            alt={img.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        ))
+      }
+    </div>
+
+    <div class="detail__col">
+      {
+        right.map((img, i) => (
+          <img
+            class="detail__img"
+            src={fluidUrl(img)}
+            srcset={fluidSrcSet(img)}
+            sizes="(max-width: 720px) 100vw, 50vw"
+            width={img.width}
+            height={img.height}
+            alt={img.alt}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            decoding={i === 0 ? 'sync' : 'async'}
+            fetchpriority={i === 0 ? 'high' : 'auto'}
+          />
+        ))
+      }
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  /* 시안: 헤더 아래부터 좌우 여백 없이 2컬럼, 이미지 사이 간격 0 */
+  .detail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    background: var(--c-blue);
+  }
+
+  .detail__col {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .detail__img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* ---- 텍스트 패널 ---- */
+  .detail__text {
+    background: var(--c-paper);
+    color: var(--c-ink);
+    padding: clamp(32px, 5.2vw, 100px) clamp(24px, 5.52vw, 106px) clamp(36px, 4.7vw, 90px)
+      clamp(24px, 7.92vw, 152px);
+  }
+
+  .detail__back {
+    display: inline-block;
+    margin-bottom: clamp(28px, 4.7vw, 90px);
+    font-weight: 900;
+    font-size: clamp(14px, 1vw, 19px);
+    letter-spacing: 0.01em;
+    color: var(--c-ink);
+  }
+
+  .detail__back:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .detail__title {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.35em 0.6em;
+    margin-bottom: clamp(18px, 1.9vw, 36px);
+    font-weight: 900;
+    font-size: clamp(28px, 2.76vw, 53px);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .detail__date {
+    font-weight: 700;
+    font-size: clamp(14px, 1.15vw, 22px);
+    letter-spacing: 0.01em;
+  }
+
+  .detail__body {
+    font-size: clamp(15px, 1.15vw, 22px);
+    line-height: 1.55;
+    color: var(--c-ink-soft);
+  }
+
+  .detail__body :global(p + p) {
+    margin-top: 1.55em;
+  }
+
+  .detail__body :global(a) {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  @media (max-width: 720px) {
+    .detail {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    /* 모바일에서는 텍스트 → 이미지 순서를 유지하기 위해 컬럼을 그대로 쌓습니다 */
+  }
+</style>

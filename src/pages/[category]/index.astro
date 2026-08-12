@@ -1,0 +1,53 @@
+---
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import WorkCard from '~/components/WorkCard.astro';
+import { CATEGORIES, categoryLabel } from '~/lib/site';
+import { getWorksByCategory } from '~/lib/works';
+
+export const getStaticPaths = (() =>
+  CATEGORIES.map((c) => ({ params: { category: c.slug } }))) satisfies GetStaticPaths;
+
+const { category } = Astro.params;
+const works = await getWorksByCategory(category!);
+const label = categoryLabel(category!);
+---
+
+<BaseLayout title={label} active={category} description={`NAKTA ${label} archive`}>
+  <h1 class="visually-hidden">{label}</h1>
+
+  {
+    works.length > 0 ? (
+      <div class="archive">
+        {works.map((work, i) => (
+          <WorkCard work={work} sizes="(max-width: 720px) 100vw, 47vw" priority={i < 2} />
+        ))}
+      </div>
+    ) : (
+      <p class="archive__empty">아직 등록된 작업이 없습니다.</p>
+    )
+  }
+</BaseLayout>
+
+<style>
+  /* 시안: 2열, 카드 4:3, 열간 25px / 행간 29px, 좌우 여백 54px */
+  .archive {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap-row) var(--gap-col);
+    padding: 0 var(--page-pad) var(--page-pad);
+  }
+
+  .archive__empty {
+    padding: clamp(40px, 8vw, 120px) var(--page-pad);
+    font-size: clamp(15px, 1.1vw, 20px);
+    color: var(--c-lavender);
+  }
+
+  @media (max-width: 720px) {
+    .archive {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+  }
+</style>

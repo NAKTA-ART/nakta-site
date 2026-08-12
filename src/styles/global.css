@@ -1,0 +1,154 @@
+/* =========================================================
+   NAKTA — design tokens
+   시안(design/*.psd)에서 추출한 값을 그대로 토큰화했습니다.
+   ========================================================= */
+
+:root {
+  /* color */
+  --c-blue: #1031be;
+  --c-blue-dark: #0c27a0;
+  --c-lavender: #d4dbf7;
+  --c-paper: #ffffff;
+  --c-ink: #101010;
+  --c-ink-soft: #3d3d3d;
+  --c-dim: rgba(255, 255, 255, 0.62);
+
+  /* type */
+  --f-display: 'Anton', 'Noto Sans KR', system-ui, sans-serif;
+  --f-body: 'Lato', 'Noto Sans KR', system-ui, sans-serif;
+
+  /* layout — 시안 1920px 기준 */
+  --page-pad: clamp(20px, 2.81vw, 54px);   /* 54 / 1920 */
+  --header-h: clamp(64px, 6.77vw, 130px);  /* 130 / 1920 */
+  --footer-h: clamp(52px, 3.75vw, 72px);   /* 72 */
+  --gap-col: clamp(10px, 1.3vw, 25px);     /* 25 */
+  --gap-row: clamp(10px, 1.51vw, 29px);    /* 29 */
+  /* 시안의 좌/우 컬럼 폭 비율(486 : 1303)을 fr 로 그대로 사용 */
+  --col-left: 486fr;
+  --col-right: 1303fr;
+}
+
+/* ---------- reset ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--f-body);
+  font-weight: 400;
+  color: var(--c-paper);
+  background: var(--c-blue);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-lavender);
+  outline-offset: 3px;
+}
+
+/* ---------- shared layout ---------- */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.page__body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------- date badge ---------- */
+.badge {
+  position: absolute;
+  left: clamp(12px, 1.46vw, 28px);
+  bottom: clamp(10px, 0.63vw, 12px);
+  padding: 0.42em 0.72em 0.34em;
+  background: var(--c-paper);
+  color: var(--c-ink);
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: clamp(11px, 0.83vw, 16px);
+  letter-spacing: 0.01em;
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ---------- work card ---------- */
+.card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: var(--c-blue-dark);
+}
+
+.card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
+}
+
+.card:hover .card__img,
+.card:focus-visible .card__img {
+  transform: scale(1.035);
+  filter: saturate(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card__img {
+    transition: none;
+  }
+  .card:hover .card__img,
+  .card:focus-visible .card__img {
+    transform: none;
+  }
+}
+
+/* ---------- utility ---------- */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

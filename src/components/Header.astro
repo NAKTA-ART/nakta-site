@@ -1,0 +1,140 @@
+---
+import { SITE, CATEGORIES, SECONDARY_NAV } from '~/lib/site';
+
+interface Props {
+  /** 현재 활성 카테고리 slug */
+  active?: string;
+}
+const { active } = Astro.props;
+---
+
+<header class="site-header">
+  <a class="site-header__logo" href="/">{SITE.name}</a>
+
+  <div class="site-header__bar">
+    <nav class="nav" aria-label="작업 카테고리">
+      <ul>
+        {
+          CATEGORIES.map((c) => (
+            <li>
+              <a
+                class="nav__link"
+                href={`/${c.slug}`}
+                data-label={c.label}
+                aria-current={active === c.slug ? 'page' : undefined}
+              >
+                <span>{c.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <nav class="nav" aria-label="사이트 정보">
+      <ul>
+        {
+          SECONDARY_NAV.map((item) => (
+            <li>
+              <a
+                class="nav__link"
+                href={item.href}
+                data-label={item.label}
+                aria-current={active === item.href.slice(1) ? 'page' : undefined}
+              >
+                <span>{item.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    display: grid;
+    flex: 0 0 auto; /* 본문이 커져도 헤더 높이는 고정 */
+    grid-template-columns: minmax(0, var(--col-left)) minmax(0, var(--col-right));
+    gap: var(--gap-col);
+    align-items: center;
+    height: var(--header-h);
+    padding-inline: var(--page-pad);
+    background: var(--c-blue);
+  }
+
+  .site-header__logo {
+    font-family: var(--f-display);
+    font-size: clamp(21px, 1.77vw, 34px);
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: var(--c-paper);
+  }
+
+  .site-header__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 2vw, 40px);
+  }
+
+  .nav ul {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2.08vw, 40px);
+  }
+
+  /*
+    활성 메뉴는 밑줄이 아니라 굵기(700 → 900)로 표시합니다.
+    굵어지면 글자 폭이 늘어 다른 메뉴가 밀리므로, ::after 로 900 굵기의
+    같은 글자를 같은 그리드 칸에 숨겨두어 항상 굵은 쪽 폭을 확보합니다.
+  */
+  .nav__link {
+    display: grid;
+    font-size: clamp(11px, 0.83vw, 16px);
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    color: var(--c-paper);
+    padding-block: 4px;
+    transition: opacity 0.2s ease;
+  }
+
+  .nav__link > span,
+  .nav__link::after {
+    grid-area: 1 / 1;
+  }
+
+  .nav__link::after {
+    content: attr(data-label);
+    font-weight: 900;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .nav__link:hover {
+    opacity: 0.68;
+  }
+
+  .nav__link[aria-current='page'] > span {
+    font-weight: 900;
+  }
+
+  .nav__link[aria-current='page']:hover {
+    opacity: 1;
+  }
+
+  /* 모바일: 로고 위, 내비게이션 아래로 접힘 */
+  @media (max-width: 720px) {
+    .site-header {
+      grid-template-columns: 1fr;
+      height: auto;
+      gap: 10px;
+      padding-block: 16px 14px;
+    }
+    .site-header__bar {
+      flex-wrap: wrap;
+      gap: 10px 18px;
+    }
+  }
+</style>

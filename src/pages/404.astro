@@ -1,0 +1,36 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404">
+  <section class="notfound">
+    <h1>404</h1>
+    <p>요청하신 페이지를 찾을 수 없습니다.</p>
+    <a href="/">← Back to home</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .notfound {
+    padding: clamp(40px, 8vw, 140px) var(--page-pad);
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: clamp(4rem, 12vw, 14rem);
+    line-height: 1;
+    color: var(--c-lavender);
+  }
+
+  p {
+    margin: 0.8em 0 1.6em;
+    font-size: clamp(15px, 1.15vw, 21px);
+  }
+
+  a {
+    font-weight: 900;
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+</style>

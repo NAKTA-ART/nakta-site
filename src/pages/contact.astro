@@ -1,0 +1,53 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { SITE } from '~/lib/site';
+---
+
+<BaseLayout title="Contact" active="contact">
+  <section class="prose">
+    <h1>Contact</h1>
+    <p>커미션 · 전시 · 협업 문의는 아래 메일로 보내주세요.</p>
+    <p><a class="prose__mail" href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+    <p class="prose__note">
+      ※ 이 페이지는 아직 디자인 시안이 없어 기본 레이아웃으로 구성했습니다.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  .prose {
+    max-width: 46rem;
+    padding: clamp(24px, 4vw, 72px) var(--page-pad) clamp(48px, 6vw, 110px);
+  }
+
+  h1 {
+    font-family: var(--f-display);
+    font-weight: 400;
+    font-size: clamp(2.5rem, 5vw, 5.5rem);
+    line-height: 1.05;
+    color: var(--c-lavender);
+    margin-bottom: 0.4em;
+  }
+
+  p {
+    font-size: clamp(15px, 1.15vw, 21px);
+    line-height: 1.7;
+    color: var(--c-paper);
+  }
+
+  p + p {
+    margin-top: 1.4em;
+  }
+
+  .prose__mail {
+    font-weight: 700;
+    color: var(--c-lavender);
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+
+  .prose__note {
+    font-size: clamp(12px, 0.83vw, 15px);
+    color: var(--c-dim);
+  }
+</style>

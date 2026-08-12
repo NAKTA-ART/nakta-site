@@ -1,0 +1,25 @@
+---
+import { SITE } from '~/lib/site';
+---
+
+<footer class="site-footer">
+  <small>{SITE.copyright}</small>
+</footer>
+
+<style>
+  .site-footer {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    height: var(--footer-h);
+    padding-inline: var(--page-pad);
+    background: var(--c-blue);
+  }
+
+  .site-footer small {
+    font-size: clamp(11px, 0.73vw, 14px);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: var(--c-dim);
+  }
+</style>
