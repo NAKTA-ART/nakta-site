@@ -1,0 +1,75 @@
+---
+import type { WorkMedia } from '~/lib/works';
+import { fluidSrcSet, fluidUrl } from '~/lib/image';
+
+interface Props {
+  media: WorkMedia;
+  /** 첫 화면에 보이는 항목이면 true (지연 로딩 해제) */
+  eager?: boolean;
+}
+
+const { media, eager = false } = Astro.props;
+---
+
+{
+  media.kind === 'image' ? (
+    <img
+      class="media"
+      src={fluidUrl(media)}
+      srcset={fluidSrcSet(media)}
+      sizes="(max-width: 720px) 100vw, 50vw"
+      width={media.width}
+      height={media.height}
+      alt={media.alt}
+      loading={eager ? 'eager' : 'lazy'}
+      decoding={eager ? 'sync' : 'async'}
+      fetchpriority={eager ? 'high' : 'auto'}
+    />
+  ) : (
+    <figure class="media media--video">
+      <div class="video" style={`aspect-ratio:${media.width} / ${media.height}`}>
+        <iframe
+          src={media.embedUrl}
+          title={media.caption ?? '영상'}
+          loading={eager ? 'eager' : 'lazy'}
+          referrerpolicy="strict-origin-when-cross-origin"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        />
+      </div>
+      {media.caption && <figcaption>{media.caption}</figcaption>}
+    </figure>
+  )
+}
+
+<style>
+  .media {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+  }
+
+  /* 영상은 이미지와 달리 배경이 비어 보이므로 브랜드 컬러 위에 올립니다 */
+  .media--video {
+    background: var(--c-blue);
+  }
+
+  .video {
+    width: 100%;
+  }
+
+  .video iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  figcaption {
+    padding: 0.9em clamp(14px, 1.6vw, 30px) 1.1em;
+    font-size: clamp(12px, 0.83vw, 16px);
+    line-height: 1.5;
+    color: var(--c-dim);
+  }
+</style>

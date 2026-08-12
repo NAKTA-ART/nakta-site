@@ -59,17 +59,64 @@ export const work = defineType({
     }),
     defineField({
       name: 'gallery',
-      title: '상세 이미지',
+      title: '상세 이미지 · 영상',
       type: 'array',
-      description: '상세 페이지에 좌우 2단으로 자동 배치됩니다. 순서대로 균형을 맞춰 채웁니다.',
+      description:
+        '상세 페이지에 좌우 2단으로 자동 배치됩니다. 순서대로 균형을 맞춰 채우며, 영상도 이미지와 섞어서 넣을 수 있습니다.',
       of: [
         defineArrayMember({
           type: 'image',
+          title: '이미지',
           options: { hotspot: true },
           fields: [defineField({ name: 'alt', title: '대체 텍스트', type: 'string' })],
         }),
+        defineArrayMember({
+          type: 'object',
+          name: 'videoEmbed',
+          title: '영상 (YouTube · Vimeo)',
+          fields: [
+            defineField({
+              name: 'url',
+              title: '영상 주소',
+              type: 'url',
+              description:
+                'YouTube 또는 Vimeo 주소를 그대로 붙여넣으세요. (youtu.be/… , youtube.com/watch?v=… , youtube.com/shorts/… , vimeo.com/… )',
+              validation: (rule) =>
+                rule
+                  .required()
+                  .uri({ scheme: ['http', 'https'] })
+                  .custom((value) =>
+                    !value || /(?:youtu\.be|youtube\.com|youtube-nocookie\.com|vimeo\.com)/i.test(value)
+                      ? true
+                      : 'YouTube 또는 Vimeo 주소만 넣을 수 있습니다.',
+                  ),
+            }),
+            defineField({
+              name: 'aspect',
+              title: '화면 비율',
+              type: 'string',
+              description: '영상 원본 비율을 고르세요. 세로 영상(쇼츠·릴스)이면 9:16 입니다.',
+              options: {
+                list: [
+                  { title: '16:9 (가로, 기본)', value: '16:9' },
+                  { title: '9:16 (세로)', value: '9:16' },
+                  { title: '4:3', value: '4:3' },
+                  { title: '1:1 (정사각)', value: '1:1' },
+                ],
+                layout: 'radio',
+              },
+              initialValue: '16:9',
+            }),
+            defineField({ name: 'caption', title: '설명 (선택)', type: 'string' }),
+          ],
+          preview: {
+            select: { url: 'url', aspect: 'aspect', caption: 'caption' },
+            prepare({ url, aspect, caption }) {
+              return { title: caption || url, subtitle: `영상 · ${aspect ?? '16:9'}` };
+            },
+          },
+        }),
       ],
-      options: { layout: 'grid' },
     }),
     defineField({
       name: 'body',

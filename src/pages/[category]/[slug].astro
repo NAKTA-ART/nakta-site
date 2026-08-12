@@ -3,7 +3,7 @@ import type { GetStaticPaths } from 'astro';
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import { categoryLabel } from '~/lib/site';
 import { getAllWorks, getWorkBySlug, balanceColumns } from '~/lib/works';
-import { fluidSrcSet, fluidUrl } from '~/lib/image';
+import GalleryMedia from '~/components/GalleryMedia.astro';
 
 // 정적 빌드(output: 'static')로 되돌릴 때만 쓰입니다. SSR 에서는 무시됩니다.
 export const getStaticPaths = (async () => {
@@ -45,40 +45,11 @@ const { left, right } = balanceColumns(work.gallery);
         <div class="detail__body" set:html={bodyHtml} />
       </div>
 
-      {
-        left.map((img) => (
-          <img
-            class="detail__img"
-            src={fluidUrl(img)}
-            srcset={fluidSrcSet(img)}
-            sizes="(max-width: 720px) 100vw, 50vw"
-            width={img.width}
-            height={img.height}
-            alt={img.alt}
-            loading="lazy"
-            decoding="async"
-          />
-        ))
-      }
+      {left.map((item) => <GalleryMedia media={item} />)}
     </div>
 
     <div class="detail__col">
-      {
-        right.map((img, i) => (
-          <img
-            class="detail__img"
-            src={fluidUrl(img)}
-            srcset={fluidSrcSet(img)}
-            sizes="(max-width: 720px) 100vw, 50vw"
-            width={img.width}
-            height={img.height}
-            alt={img.alt}
-            loading={i === 0 ? 'eager' : 'lazy'}
-            decoding={i === 0 ? 'sync' : 'async'}
-            fetchpriority={i === 0 ? 'high' : 'auto'}
-          />
-        ))
-      }
+      {right.map((item, i) => <GalleryMedia media={item} eager={i === 0} />)}
     </div>
   </article>
 </BaseLayout>
@@ -96,11 +67,6 @@ const { left, right } = balanceColumns(work.gallery);
     display: flex;
     flex-direction: column;
     min-width: 0;
-  }
-
-  .detail__img {
-    width: 100%;
-    height: auto;
   }
 
   /* ---- 텍스트 패널 ---- */
